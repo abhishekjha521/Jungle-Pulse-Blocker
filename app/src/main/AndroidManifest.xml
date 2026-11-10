@@ -4,7 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
@@ -23,7 +22,7 @@
     </queries>
 
     <application
-        android:name=".FocusShieldApp"
+        android:name=".JunglePulseApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -47,12 +46,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Accessibility Service for skipping and muting ads -->
+        <!-- Accessibility Service scoped strictly to YouTube -->
         <service
             android:name=".service.AdSkipAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true"
-            android:label="FocusShield Ad Skipper">
+            android:label="Jungle Pulse YouTube Skip">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
