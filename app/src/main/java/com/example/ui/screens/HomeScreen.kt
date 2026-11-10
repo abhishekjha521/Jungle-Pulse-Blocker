@@ -1,8 +1,10 @@
 package com.example.ui.screens
 
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -453,6 +455,61 @@ fun HomeScreen(
                                 text = if (isHindi) "2. Usage Access" else "2. Usage Access",
                                 style = MaterialTheme.typography.labelMedium
                             )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Android 13/14 Restricted Settings Unlocker
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (isHindi) "यदि 'Restricted Setting' दिखे तो 1-टैप में हटाएं:" else "If 'Restricted Setting' appears:",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = if (isHindi)
+                                    "1. नीचे दिए बटन से App Info खोलें।\n2. ऊपर दाईं तरफ 3 डॉट्स (⋮) पर टैप करें।\n3. 'Allow restricted settings' दबाएं, फिर वापस आकर ऑन करें।"
+                                else
+                                    "1. Tap below to open App Info.\n2. Tap 3 dots (⋮) in top-right corner.\n3. Tap 'Allow restricted settings', then turn on Accessibility.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 18.sp
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = {
+                                    try {
+                                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                            data = Uri.fromParts("package", context.packageName, null)
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (_: Exception) {}
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("btn_open_app_info_restricted"),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text(if (isHindi) "🔓 App Info खोलें (3 डॉट्स ⋮ दबाएं)" else "🔓 Open App Info (Tap 3 dots ⋮)")
+                            }
                         }
                     }
                 }

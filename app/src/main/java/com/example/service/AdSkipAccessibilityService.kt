@@ -23,7 +23,9 @@ class AdSkipAccessibilityService : AccessibilityService() {
         // Target video packages
         private val TARGET_PACKAGES = setOf(
             "com.google.android.youtube",
-            "com.google.android.apps.youtube.music"
+            "com.google.android.apps.youtube.music",
+            "com.google.android.youtube.tv",
+            "com.android.chrome"
         )
 
         // Known skip button IDs in YouTube
@@ -35,7 +37,10 @@ class AdSkipAccessibilityService : AccessibilityService() {
             "com.google.android.youtube:id/countdown_cancel_button",
             "com.google.android.youtube:id/preskip_countdown",
             "com.google.android.youtube:id/ad_progress_text",
-            "com.google.android.youtube:id/skip_ad_button_container"
+            "com.google.android.youtube:id/skip_ad_button_container",
+            "com.google.android.youtube:id/ad_compact_banner_close_button",
+            "com.google.android.youtube:id/close_button",
+            "com.google.android.youtube:id/dismiss_button"
         )
 
         // Multi-language skip phrases with focus on "skip in"
@@ -90,13 +95,13 @@ class AdSkipAccessibilityService : AccessibilityService() {
                 try {
                     val tapped = findAndTapSkipInNode(root)
                     if (tapped) {
-                        Log.d(TAG, "Tapped 'skip in' node during countdown watch")
+                        Log.d(TAG, "Tapped skip node during countdown watch")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error in countdown watch: ${e.message}")
                 }
             }
-            mainHandler.postDelayed(this, 250L)
+            mainHandler.postDelayed(this, 150L)
         }
     }
 
@@ -131,17 +136,15 @@ class AdSkipAccessibilityService : AccessibilityService() {
         for (resId in SKIP_BUTTON_IDS) {
             val nodes = rootNode.findAccessibilityNodeInfosByViewId(resId)
             for (node in nodes) {
-                if (node.isClickable && node.isEnabled) {
-                    val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                    if (clicked) {
-                        if (now - lastSkipTimestamp > 1200L) {
-                            lastSkipTimestamp = now
-                            Log.d(TAG, "Tapped skip ad button by ID: $resId")
-                            handleAdSkipped(packageName)
-                        }
-                        unmuteAudioIfNeeded()
-                        return
+                val clicked = clickNodeOrParentOrChildren(node)
+                if (clicked) {
+                    if (now - lastSkipTimestamp > 1000L) {
+                        lastSkipTimestamp = now
+                        Log.d(TAG, "Tapped skip ad button by ID: $resId")
+                        handleAdSkipped(packageName)
                     }
+                    unmuteAudioIfNeeded()
+                    return
                 }
             }
         }
@@ -149,7 +152,7 @@ class AdSkipAccessibilityService : AccessibilityService() {
         // 2. Search for any text containing "Skip in" or "Skip Ad"
         val foundSkip = findAndTapSkipInNode(rootNode)
         if (foundSkip) {
-            if (now - lastSkipTimestamp > 1200L) {
+            if (now - lastSkipTimestamp > 1000L) {
                 lastSkipTimestamp = now
                 handleAdSkipped(packageName)
             }
@@ -186,31 +189,8 @@ class AdSkipAccessibilityService : AccessibilityService() {
 
         if (isSkipInMatch || matchesGeneral) {
             Log.d(TAG, "Found target skip text: '$text' / '$desc'")
-
-            // 1. Try clicking directly on node if clickable
-            if (node.isClickable) {
-                val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                if (clicked) return true
-            }
-
-            // 2. Try clicking clickable parent / container
-            var target: AccessibilityNodeInfo? = node.parent
-            var depth = 0
-            while (target != null && depth < 4) {
-                if (target.isClickable) {
-                    val clicked = target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                    if (clicked) return true
-                }
-                for (j in 0 until target.childCount) {
-                    val sibling = target.getChild(j) ?: continue
-                    if (sibling.isClickable) {
-                        val clicked = sibling.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                        if (clicked) return true
-                    }
-                }
-                target = target.parent
-                depth++
-            }
+            val clicked = clickNodeOrParentOrChildren(node)
+            if (clicked) return true
         }
 
         for (i in 0 until node.childCount) {
@@ -219,6 +199,40 @@ class AdSkipAccessibilityService : AccessibilityService() {
             if (handled) return true
         }
 
+        return false
+    }
+
+    /**
+     * Clicks the node directly, or if not clickable, searches up the hierarchy
+     * (up to 4 levels) and tests the parent or sibling views for clickability.
+     */
+    private fun clickNodeOrParentOrChildren(node: AccessibilityNodeInfo): Boolean {
+        // Direct click
+        if (node.isClickable && node.isEnabled) {
+            val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            if (clicked) return true
+        }
+
+        // Traverse up to clickable parent/container
+        var target: AccessibilityNodeInfo? = node.parent
+        var depth = 0
+        while (target != null && depth < 4) {
+            if (target.isClickable && target.isEnabled) {
+                val clicked = target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                if (clicked) return true
+            }
+
+            // Check siblings inside container
+            for (j in 0 until target.childCount) {
+                val sibling = target.getChild(j) ?: continue
+                if (sibling.isClickable && sibling.isEnabled) {
+                    val clicked = sibling.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    if (clicked) return true
+                }
+            }
+            target = target.parent
+            depth++
+        }
         return false
     }
 
