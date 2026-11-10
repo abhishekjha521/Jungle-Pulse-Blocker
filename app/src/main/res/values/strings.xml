@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Jungle Pulse Blocker</string>
+    <string name="tagline">YouTube Ad Skipper &amp; Screen Time Controller</string>
+    <string name="accessibility_service_description">Jungle Pulse Blocker detects and automatically taps \'Skip in\' and \'Skip Ad\' buttons on YouTube and mutes ad audio.</string>
+</resources>
