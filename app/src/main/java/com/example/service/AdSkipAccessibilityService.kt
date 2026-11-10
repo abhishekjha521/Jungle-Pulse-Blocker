@@ -1,12 +1,8 @@
 package com.example.service
 
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.GestureDescription
 import android.content.Context
-import android.graphics.Path
-import android.graphics.Rect
 import android.media.AudioManager
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -27,9 +23,7 @@ class AdSkipAccessibilityService : AccessibilityService() {
         // Target video packages
         private val TARGET_PACKAGES = setOf(
             "com.google.android.youtube",
-            "com.google.android.apps.youtube.music",
-            "com.google.android.youtube.tv",
-            "com.android.chrome"
+            "com.google.android.apps.youtube.music"
         )
 
         // Known skip button IDs in YouTube
@@ -44,7 +38,7 @@ class AdSkipAccessibilityService : AccessibilityService() {
             "com.google.android.youtube:id/skip_ad_button_container"
         )
 
-        // Prioritized multi-language skip phrases with focus on "skip in"
+        // Multi-language skip phrases with focus on "skip in"
         private val SKIP_TEXT_KEYWORDS = listOf(
             "skip in",          // Target requested specifically by user
             "skip in:",
@@ -102,8 +96,7 @@ class AdSkipAccessibilityService : AccessibilityService() {
                     Log.e(TAG, "Error in countdown watch: ${e.message}")
                 }
             }
-            // Check again in 200ms while ad is present
-            mainHandler.postDelayed(this, 200L)
+            mainHandler.postDelayed(this, 250L)
         }
     }
 
@@ -138,23 +131,17 @@ class AdSkipAccessibilityService : AccessibilityService() {
         for (resId in SKIP_BUTTON_IDS) {
             val nodes = rootNode.findAccessibilityNodeInfosByViewId(resId)
             for (node in nodes) {
-                var tapped = false
                 if (node.isClickable && node.isEnabled) {
-                    tapped = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                }
-                if (!tapped) {
-                    // Try tapping screen coordinates directly
-                    tapped = tapNodeCoordinates(node)
-                }
-
-                if (tapped) {
-                    if (now - lastSkipTimestamp > 1200L) {
-                        lastSkipTimestamp = now
-                        Log.d(TAG, "Tapped skip ad button by ID: $resId")
-                        handleAdSkipped(packageName)
+                    val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    if (clicked) {
+                        if (now - lastSkipTimestamp > 1200L) {
+                            lastSkipTimestamp = now
+                            Log.d(TAG, "Tapped skip ad button by ID: $resId")
+                            handleAdSkipped(packageName)
+                        }
+                        unmuteAudioIfNeeded()
+                        return
                     }
-                    unmuteAudioIfNeeded()
-                    return
                 }
             }
         }
@@ -206,21 +193,24 @@ class AdSkipAccessibilityService : AccessibilityService() {
                 if (clicked) return true
             }
 
-            // 2. Try clicking clickable parent
+            // 2. Try clicking clickable parent / container
             var target: AccessibilityNodeInfo? = node.parent
             var depth = 0
-            while (target != null && depth < 3) {
+            while (target != null && depth < 4) {
                 if (target.isClickable) {
                     val clicked = target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                     if (clicked) return true
                 }
+                for (j in 0 until target.childCount) {
+                    val sibling = target.getChild(j) ?: continue
+                    if (sibling.isClickable) {
+                        val clicked = sibling.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                        if (clicked) return true
+                    }
+                }
                 target = target.parent
                 depth++
             }
-
-            // 3. Physically tap screen coordinates of the "skip in" bounding box using dispatchGesture
-            val tappedCoord = tapNodeCoordinates(node)
-            if (tappedCoord) return true
         }
 
         for (i in 0 until node.childCount) {
@@ -229,24 +219,6 @@ class AdSkipAccessibilityService : AccessibilityService() {
             if (handled) return true
         }
 
-        return false
-    }
-
-    private fun tapNodeCoordinates(node: AccessibilityNodeInfo): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val rect = Rect()
-            node.getBoundsInScreen(rect)
-            if (rect.width() > 0 && rect.height() > 0) {
-                val clickPath = Path().apply {
-                    moveTo(rect.centerX().toFloat(), rect.centerY().toFloat())
-                }
-                val stroke = GestureDescription.StrokeDescription(clickPath, 0, 50)
-                val gesture = GestureDescription.Builder().addStroke(stroke).build()
-                val dispatched = dispatchGesture(gesture, null, null)
-                Log.d(TAG, "Dispatched gesture tap at (${rect.centerX()}, ${rect.centerY()}) -> $dispatched")
-                return dispatched
-            }
-        }
         return false
     }
 
