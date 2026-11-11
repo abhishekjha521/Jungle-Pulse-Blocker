@@ -109,9 +109,9 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = if (isHindi)
-                    "YouTube विज्ञापन स्वतः स्किप और 'Skip in' ऑटो-टैप"
+                    "⚡ डायरेक्ट ऐड स्किप • रिपोर्ट पॉप-अप ब्लॉक • 0ms ऑटो-टैप"
                 else
-                    "YouTube Auto Ad-Skipper & 'Skip in' Auto-Tap",
+                    "⚡ Direct Ad Skip • Report Popups Blocked • 0ms Auto-Tap",
                 style = MaterialTheme.typography.bodyMedium,
                 color = ColorAdBlocked,
                 fontWeight = FontWeight.SemiBold,
@@ -218,98 +218,143 @@ fun HomeScreen(
             }
         }
 
-        // Action Buttons: Enable Accessibility
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = if (isHindi) "🛠️ सर्विस चालू करने के स्टेप्स:" else "🛠️ How to Enable Skip Service:",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (isHindi)
-                        "1. नीचे 'Accessibility चालू करें' पर दबाएं।\n2. 'Jungle Pulse YouTube Skip' को चुनें और ON कर दें।\n3. YouTube खोलें — विज्ञापन आते ही अपने आप स्किप हो जाएंगे!"
-                    else
-                        "1. Tap 'Turn ON Accessibility' below.\n2. Tap 'Jungle Pulse YouTube Skip' and toggle it ON.\n3. Open YouTube — ads will skip automatically!",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+        // Step-by-Step Activation Guide (When Accessibility is not yet active)
+        if (!isAccessibilityActive) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = ColorTimeWarning.copy(alpha = 0.14f))
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(ColorTimeWarning.copy(alpha = 0.2f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = ColorTimeWarning,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = if (isHindi) "⚠️ सर्विस चालू करने के 2 आसान स्टेप्स" else "⚠️ 2 Quick Steps to Activate:",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = ColorTimeWarning
+                            )
+                            Text(
+                                text = if (isHindi) "Tecno, Infinix & Android 13/14 के लिए" else "For Tecno, Infinix & Android 13/14",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
 
-                Button(
-                    onClick = {
-                        try {
-                            context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                        } catch (_: Exception) {}
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(imageVector = Icons.Default.Accessibility, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isHindi) "Accessibility सेटिंग्स खोलें (Turn ON)" else "Turn ON Accessibility",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
+                    Spacer(modifier = Modifier.height(14.dp))
 
-        // Restricted Setting Unlock Guide
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = ColorTimeWarning.copy(alpha = 0.1f))
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = ColorTimeWarning,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isHindi) "यदि 'Restricted setting' दिखे तो (Infinix/Tecno):" else "If 'Restricted setting' appears:",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorTimeWarning
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = if (isHindi)
-                        "नीचे बटन से App Info खोलें ➔ ऊपर दाईं तरफ 3 डॉट्स (⋮) दबाएं ➔ 'Allow restricted settings' दबाएं!"
-                    else
-                        "Tap button below to open App Info ➔ Tap 3 dots (⋮) top-right ➔ Tap 'Allow restricted settings'!",
-                    style = MaterialTheme.typography.bodySmall,
-                    lineHeight = 18.sp
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedButton(
-                    onClick = {
-                        try {
-                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
+                    // STEP 1 BOX
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Text(
+                                text = if (isHindi) "कदम 1: 'Restricted setting' अनलॉक करें" else "Step 1: Unlock 'Restricted setting'",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = ColorTimeWarning
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = if (isHindi)
+                                    "1. नीचे बटन दबाकर App Info खोलें。\n2. ऊपर दाएं कोने में 3 डॉट्स (⋮) पर क्लिक करें。\n3. 'Allow restricted settings' चुनें और अपना PIN / फिंगरप्रिंट लगाएं।"
+                                else
+                                    "1. Tap button below to open App Info.\n2. Tap 3 dots (⋮) in the top-right corner.\n3. Choose 'Allow restricted settings' & enter PIN/Fingerprint.",
+                                style = MaterialTheme.typography.bodySmall,
+                                lineHeight = 19.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = {
+                                    try {
+                                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                            data = Uri.fromParts("package", context.packageName, null)
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (_: Exception) {}
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ColorTimeWarning)
+                            ) {
+                                Text(
+                                    text = if (isHindi) "1. App Info खोलें (3 डॉट्स ⋮ दबाएं)" else "1. Open App Info (Tap 3 dots ⋮)",
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
                             }
-                            context.startActivity(intent)
-                        } catch (_: Exception) {}
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(if (isHindi) "🔓 App Info खोलें (3 डॉट्स ⋮ दबाएं)" else "🔓 Open App Info (Tap 3 dots ⋮)")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // STEP 2 BOX
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Text(
+                                text = if (isHindi) "कदम 2: Accessibility चालू करें" else "Step 2: Turn ON Accessibility",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = ColorAdBlocked
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = if (isHindi)
+                                    "Step 1 पूरा करने के बाद नीचे बटन दबाएं ➔ 'Jungle Pulse YouTube Skip' चुनें ➔ स्विच को ON कर दें!"
+                                else
+                                    "After Step 1, tap below ➔ Select 'Jungle Pulse YouTube Skip' ➔ Toggle it ON!",
+                                style = MaterialTheme.typography.bodySmall,
+                                lineHeight = 19.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = {
+                                    try {
+                                        context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                                    } catch (_: Exception) {}
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ColorAdBlocked)
+                            ) {
+                                Icon(imageVector = Icons.Default.Accessibility, contentDescription = null, tint = Color.White)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (isHindi) "2. Accessibility चालू करें (Turn ON)" else "2. Turn ON Accessibility",
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
+
+
 
         // Switches Card: Auto Mute & Test Skip
         Card(
