@@ -16,6 +16,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val adSkipEnabled = prefsManager.adSkipEnabled
     val muteAdsEnabled = prefsManager.muteAdsEnabled
+    val autoContinueEnabled = prefsManager.autoContinueEnabled
     val adsSkippedCount = prefsManager.adsSkippedCount
     val language = prefsManager.language
 
@@ -38,12 +39,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _isAccessibilityActive.value = isEnabledInSystem || AdSkipAccessibilityService.isRunning.value
     }
 
+    fun pauseForPayment(context: Context) {
+        val paused = AdSkipAccessibilityService.pauseForPayment(context)
+        val isHindi = language.value == "hi"
+        if (paused) {
+            _isAccessibilityActive.value = false
+            _feedbackMessage.value = if (isHindi)
+                "💳 Payment Mode चालू! Accessibility OFF हो गई — अब PhonePe/GPay/Paytm चलाएं।"
+            else
+                "💳 Payment Safe Mode ON! Accessibility is OFF — PhonePe/GPay/Paytm will work now."
+        } else {
+            refreshAccessibilityStatus(context)
+            _feedbackMessage.value = if (isHindi)
+                "✅ Accessibility पहले से ही OFF है। Payment apps काम करेंगे।"
+            else
+                "✅ Accessibility is already OFF. Payment apps are ready to use."
+        }
+    }
+
     fun setAdSkipEnabled(enabled: Boolean) {
         prefsManager.setAdSkipEnabled(enabled)
     }
 
     fun setMuteAdsEnabled(enabled: Boolean) {
         prefsManager.setMuteAdsEnabled(enabled)
+    }
+
+    fun setAutoContinueEnabled(enabled: Boolean) {
+        prefsManager.setAutoContinueEnabled(enabled)
     }
 
     fun toggleLanguage() {
@@ -53,7 +76,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun simulateTestSkip() {
         prefsManager.recordAdSkipped()
         val isHindi = language.value == "hi"
-        _feedbackMessage.value = if (isHindi) "⚡ टेस्ट सफल: 'Skip in' विज्ञापन स्किप हुआ!" else "⚡ Test Success: Ad Skipped!"
+        _feedbackMessage.value = if (isHindi) "⚡ टेस्ट सफल: 'Skip Ad' विज्ञापन स्किप हुआ!" else "⚡ Test Success: Ad Skipped!"
     }
 
     fun clearFeedbackMessage() {

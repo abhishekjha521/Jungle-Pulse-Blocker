@@ -22,6 +22,7 @@ class PreferencesManager(context: Context) {
 
         private const val KEY_AD_SKIP = "ad_skip_enabled"
         private const val KEY_MUTE_ADS = "mute_ads_enabled"
+        private const val KEY_AUTO_CONTINUE = "auto_continue_watching"
         private const val KEY_ADS_SKIPPED = "ads_skipped_count"
         private const val KEY_LANGUAGE = "app_language"
     }
@@ -31,6 +32,9 @@ class PreferencesManager(context: Context) {
 
     private val _muteAdsEnabled = MutableStateFlow(prefs.getBoolean(KEY_MUTE_ADS, true))
     val muteAdsEnabled: StateFlow<Boolean> = _muteAdsEnabled.asStateFlow()
+
+    private val _autoContinueEnabled = MutableStateFlow(prefs.getBoolean(KEY_AUTO_CONTINUE, true))
+    val autoContinueEnabled: StateFlow<Boolean> = _autoContinueEnabled.asStateFlow()
 
     private val _adsSkippedCount = MutableStateFlow(prefs.getInt(KEY_ADS_SKIPPED, 0))
     val adsSkippedCount: StateFlow<Int> = _adsSkippedCount.asStateFlow()
@@ -48,6 +52,11 @@ class PreferencesManager(context: Context) {
         _muteAdsEnabled.value = enabled
     }
 
+    fun setAutoContinueEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_AUTO_CONTINUE, enabled).apply()
+        _autoContinueEnabled.value = enabled
+    }
+
     fun toggleLanguage() {
         val next = if (_language.value == "hi") "en" else "hi"
         prefs.edit().putString(KEY_LANGUAGE, next).apply()
@@ -62,4 +71,5 @@ class PreferencesManager(context: Context) {
 
     fun isAdSkipEnabledSync(): Boolean = prefs.getBoolean(KEY_AD_SKIP, true)
     fun isMuteAdsEnabledSync(): Boolean = prefs.getBoolean(KEY_MUTE_ADS, true)
+    fun isAutoContinueEnabledSync(): Boolean = prefs.getBoolean(KEY_AUTO_CONTINUE, true)
 }

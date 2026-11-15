@@ -1,5 +1,6 @@
 package com.example
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -42,6 +43,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.service.AdSkipAccessibilityService
 import com.example.ui.screens.HomeScreen
 import com.example.ui.theme.ColorAdBlocked
 import com.example.ui.theme.FocusShieldTheme
@@ -56,18 +58,35 @@ class MainActivity : ComponentActivity() {
         viewModel.refreshAccessibilityStatus(this)
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleShortcutIntent(intent)
+    }
+
+    private fun handleShortcutIntent(intent: Intent?) {
+        if (intent?.action == "com.example.ACTION_PAUSE_PAYMENT") {
+            viewModel.pauseForPayment(this)
+        }
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handleShortcutIntent(intent)
 
         setContent {
             FocusShieldTheme {
                 val language by viewModel.language.collectAsState()
                 val isHindi = language == "hi"
                 val isAccessibilityActive by viewModel.isAccessibilityActive.collectAsState()
+                val serviceRunning by AdSkipAccessibilityService.isRunning.collectAsState()
                 val feedbackMessage by viewModel.feedbackMessage.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
+
+                LaunchedEffect(serviceRunning) {
+                    viewModel.refreshAccessibilityStatus(this@MainActivity)
+                }
 
                 LaunchedEffect(feedbackMessage) {
                     feedbackMessage?.let { msg ->

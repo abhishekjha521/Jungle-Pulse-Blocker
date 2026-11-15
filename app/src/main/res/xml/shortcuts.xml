@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="pause_for_payment"
+        android:enabled="true"
+        android:icon="@drawable/ic_jungle_pulse_logo"
+        android:shortcutShortLabel="@string/shortcut_payment_mode_short"
+        android:shortcutLongLabel="@string/shortcut_payment_mode_long">
+        <intent
+            android:action="com.example.ACTION_PAUSE_PAYMENT"
+            android:targetPackage="com.aistudio.junglepulse.blocker"
+            android:targetClass="com.example.MainActivity" />
+    </shortcut>
+</shortcuts>

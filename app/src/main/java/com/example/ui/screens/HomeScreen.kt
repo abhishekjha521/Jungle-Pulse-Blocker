@@ -22,10 +22,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AllInclusive
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.VolumeOff
@@ -35,7 +37,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -69,6 +70,7 @@ fun HomeScreen(
 
     val adSkipEnabled by viewModel.adSkipEnabled.collectAsState()
     val muteAdsEnabled by viewModel.muteAdsEnabled.collectAsState()
+    val autoContinueEnabled by viewModel.autoContinueEnabled.collectAsState()
     val adsSkippedCount by viewModel.adsSkippedCount.collectAsState()
     val isAccessibilityActive by viewModel.isAccessibilityActive.collectAsState()
 
@@ -83,7 +85,7 @@ fun HomeScreen(
         // App Badge Image
         Box(
             modifier = Modifier
-                .size(130.dp)
+                .size(120.dp)
                 .clip(CircleShape)
                 .background(Color(0xFF0F2618)),
             contentAlignment = Alignment.Center
@@ -92,7 +94,7 @@ fun HomeScreen(
                 painter = painterResource(id = R.drawable.ic_jungle_pulse_logo),
                 contentDescription = "Jungle Pulse Logo",
                 modifier = Modifier
-                    .size(126.dp)
+                    .size(116.dp)
                     .clip(CircleShape)
             )
         }
@@ -109,9 +111,9 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = if (isHindi)
-                    "⚡ डायरेक्ट ऐड स्किप • रिपोर्ट पॉप-अप ब्लॉक • 0ms ऑटो-टैप"
+                    "⚡ डायरेक्ट ऐड स्किप • UPI/पेमेंट सेफ मोड • 0ms ऑटो-टैप"
                 else
-                    "⚡ Direct Ad Skip • Report Popups Blocked • 0ms Auto-Tap",
+                    "⚡ Direct Ad Skip • UPI/Payment Safe Mode • 0ms Auto-Tap",
                 style = MaterialTheme.typography.bodyMedium,
                 color = ColorAdBlocked,
                 fontWeight = FontWeight.SemiBold,
@@ -165,7 +167,7 @@ fun HomeScreen(
                                 text = if (isAccessibilityActive) {
                                     if (isHindi) "🟢 चालू (Active - 0ms में स्किप)" else "🟢 Active (0ms Auto-Skip)"
                                 } else {
-                                    if (isHindi) "🔴 बंद (Accessibility चालू करें)" else "🔴 Disabled (Turn ON below)"
+                                    if (isHindi) "🟡 बंद (Payment Safe / Disabled)" else "🟡 Paused (Payment Apps Ready)"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (isAccessibilityActive) ColorAdBlocked else ColorTimeWarning,
@@ -215,6 +217,137 @@ fun HomeScreen(
                         color = ColorAdBlocked
                     )
                 }
+            }
+        }
+
+        // 1-TAP PAYMENT / UPI APPS SAFE MODE CARD
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isAccessibilityActive) {
+                    Color(0xFF1E3A5F).copy(alpha = 0.25f)
+                } else {
+                    ColorAdBlocked.copy(alpha = 0.14f)
+                }
+            )
+        ) {
+            Column(modifier = Modifier.padding(18.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                if (isAccessibilityActive) Color(0xFF38BDF8).copy(alpha = 0.2f) else ColorAdBlocked.copy(alpha = 0.2f),
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AccountBalanceWallet,
+                            contentDescription = null,
+                            tint = if (isAccessibilityActive) Color(0xFF38BDF8) else ColorAdBlocked,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = if (isHindi) {
+                                if (isAccessibilityActive) "💳 PhonePe / GPay / Paytm चलाना है?" else "✅ पेमेंट ऐप्स के लिए सुरक्षित (Safe)"
+                            } else {
+                                if (isAccessibilityActive) "💳 Using PhonePe / GPay / Paytm?" else "✅ Ready for Payment & UPI Apps"
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = if (isHindi) {
+                                if (isAccessibilityActive)
+                                    "UPI/बैंकिंग ऐप्स सुरक्षा के लिए Accessibility बंद मांगते हैं।"
+                                else
+                                    "Accessibility अभी OFF है — अब सभी पेमेंट ऐप्स बिना रुकावट चलेंगे!"
+                            } else {
+                                if (isAccessibilityActive)
+                                    "UPI apps require Accessibility OFF while paying."
+                                else
+                                    "Accessibility is OFF — PhonePe, GPay, Paytm & Banking apps work normally."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (isAccessibilityActive) {
+                    Button(
+                        onClick = { viewModel.pauseForPayment(context) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("payment_pause_button"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PauseCircle,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isHindi)
+                                "⏸️ 1-Tap पेमेंट मोड (Accessibility OFF करें)"
+                            else
+                                "⏸️ 1-Tap Payment Mode (Turn OFF Now)",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            try {
+                                context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                            } catch (_: Exception) {}
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("resume_ad_skip_button"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = ColorAdBlocked)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Accessibility,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isHindi)
+                                "⚡ पेमेंट हो गया? YouTube स्किप वापस ON करें"
+                            else
+                                "⚡ Done Paying? Turn YouTube Skip ON",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = if (isHindi)
+                        "💡 आसान शॉर्टकट: ऊपर से नोटिफिकेशन पैनल नीचे खींचें और 'Payment Safe' टाइल जोड़ लें — किसी भी पेमेंट ऐप के अंदर से ही 1 क्लिक में OFF कर पाएंगे!"
+                    else
+                        "💡 Pro Tip: Add the 'Payment Safe' tile to your top Quick Settings panel to turn Accessibility OFF in 1 tap from inside any UPI app!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 18.sp
+                )
             }
         }
 
@@ -354,8 +487,6 @@ fun HomeScreen(
             }
         }
 
-
-
         // Switches Card: Auto Mute & Test Skip
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -392,6 +523,42 @@ fun HomeScreen(
                     Switch(
                         checked = muteAdsEnabled,
                         onCheckedChange = { viewModel.setMuteAdsEnabled(it) }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 2-Hour Auto-Pause Bypass Switch
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AllInclusive,
+                            contentDescription = null,
+                            tint = ColorAdBlocked,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = if (isHindi) "2 घंटे में वीडियो रुकना बंद करें" else "Non-Stop Playback (2-Hour Fix)",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = if (isHindi) "'Continue watching?' पॉप-अप अपने आप हटाएं" else "Auto-resume 'Video paused. Continue watching?'",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Switch(
+                        checked = autoContinueEnabled,
+                        onCheckedChange = { viewModel.setAutoContinueEnabled(it) },
+                        modifier = Modifier.testTag("auto_continue_switch")
                     )
                 }
 

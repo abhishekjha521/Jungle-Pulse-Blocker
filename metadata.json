@@ -1,6 +1,6 @@
 {
   "name": "Jungle Pulse Blocker",
-  "description": "Smart Ad Blocker, YouTube Ad Skipper ('Skip in' auto-tap), and Screen Time Controller.",
+  "description": "Dedicated YouTube Ad Skipper with Payment Safe Mode and Anti-Pause Non-Stop Playback.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
